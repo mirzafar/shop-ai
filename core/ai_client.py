@@ -49,7 +49,7 @@ system_message = '''
 
 
 def clean_text(text: str) -> str:
-    return text.encode('utf-8', 'replace').decode('utf-8')
+    return text.strip().encode('utf-8', 'replace').decode('utf-8')
 
 
 def close_chat(bot_response):
@@ -58,10 +58,6 @@ def close_chat(bot_response):
     if match:
         return clean_text(match.group(1).strip())
     return None
-
-
-def clear_text(text: str) -> str:
-    return text.strip().encode('ascii', errors='replace').decode('ascii')
 
 
 async def http_client(conversations: list) -> str:
@@ -75,17 +71,11 @@ async def http_client(conversations: list) -> str:
 
 
 async def on_messages(input_text: str, chat_id: str) -> str:
-    print('123')
-    input_text = clear_text(input_text)
+    input_text = clean_text(input_text)
     if input_text.lower() in ['/start', 'stoop']:
         return await cache.delete(f'chatbot:conversations:{chat_id}')
 
-    print('1234')
     conversations = await cache.get(f'chatbot:conversations:{chat_id}')
-    print('1237')
-    print()
-    print(f'on_messages() -> conversations: {conversations}')
-    print()
     if conversations:
         conversations = ujson.loads(conversations)
     else:
@@ -95,20 +85,17 @@ async def on_messages(input_text: str, chat_id: str) -> str:
 
     conversations.append({'role': 'user', 'content': input_text})
     response_text = await http_client(conversations)
-    print('1235')
-    print(response_text)
 
     summary = close_chat(response_text)
     if summary:
         print()
         print(summary)
         print()
-        await cache.set(f'chatbot:number:{chat_id}', ex=timedelta(hours=4))
+        await cache.set(f'chatbot:number:{chat_id}', '1', ex=timedelta(hours=4))
         await cache.delete(f'chatbot:conversations:{chat_id}')
         return 'Для оформления заказа назовите, пожалуйста, номер телефона.'
     else:
         conversations.append({'role': 'assistant', 'content': response_text})
         await cache.set(f'chatbot:conversations:{chat_id}', ujson.dumps(conversations), ex=timedelta(hours=1))
-    print('1236')
 
     return response_text
