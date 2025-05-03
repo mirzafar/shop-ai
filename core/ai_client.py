@@ -75,10 +75,12 @@ async def http_client(conversations: list) -> str:
 
 
 async def on_messages(input_text: str, chat_id: str) -> str:
+    print('123')
     input_text = clear_text(input_text)
     if input_text.lower() in ['/start', 'stoop']:
         return await cache.delete(f'chatbot:conversations:{chat_id}')
 
+    print('1234')
     conversations = await cache.get(f'chatbot:conversations:{chat_id}')
     print()
     print(f'on_messages() -> conversations: {conversations}')
@@ -92,6 +94,8 @@ async def on_messages(input_text: str, chat_id: str) -> str:
 
     conversations.append({'role': 'user', 'content': input_text})
     response_text = await http_client(conversations)
+    print('1235')
+    print(response_text)
 
     summary = close_chat(response_text)
     if summary:
