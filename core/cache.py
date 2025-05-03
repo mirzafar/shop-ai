@@ -23,13 +23,13 @@ class Cache:
             db=1
         )
 
-        self.connection = await aio_pika.connect_robust(
-            settings['mq'],
-            reconnect_interval=5,
-            loop=loop
-        )
-
-        self.channel = await self.connection.channel()
+        # self.connection = await aio_pika.connect_robust(
+        #     settings['mq'],
+        #     reconnect_interval=5,
+        #     loop=loop
+        # )
+        #
+        # self.channel = await self.connection.channel()
 
     async def queue(self, queue, **kwargs):
         if self.channel is None:
