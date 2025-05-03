@@ -1,7 +1,21 @@
 from sanic import response
 from sanic.views import HTTPMethodView
 
+from core.ai_client import on_messages
 from core.cache import cache
+
+
+def validate_phone(value: str) -> str:
+    response_text = ''
+    value = value.strip()
+
+    if len(value) == 10 or len(value) == 11:
+        response_text = value
+
+    if value.startswith('77') or value.startswith('87'):
+        response_text = value
+
+    return response_text
 
 
 class TelegramWebhookView(HTTPMethodView):
@@ -33,15 +47,33 @@ class TelegramWebhookView(HTTPMethodView):
         elif message and message.get('caption'):
             text = message['caption']
 
-        if text and chat_id:
-            await cache.queue(
-                queue='chatbot:messages',
-                text=text,
+        payload = {}
+
+        phone = await cache.get(f'chatbot:number:{chat_id}')
+        if phone:
+            phone = validate_phone(phone)
+            if phone:
+                await cache.delete(f'chatbot:number:{chat_id}')
+                print('phone number', phone)
+            else:
+                payload = {
+                    'method': 'sendMessage',
+                    'chat_id': chat_id,
+                    'text': 'Ввели не правильный номер. Введите обратно!'
+                }
+
+        response_text = 'Здравствуйте! Чем могу помочь: хотите сделать покупку или вам нужна консультация по одежде?'
+        if text and chat_id and not payload:
+            response_text = await on_messages(
+                input_text=text,
                 chat_id=chat_id
             )
 
-        return response.json({
-            'method': 'sendMessage',
-            'chat_id': chat_id,
-            'text': 'Введите текст'
-        })
+        if response_text:
+            payload = {
+                'method': 'sendMessage',
+                'chat_id': chat_id,
+                'text': response_text
+            }
+
+        return response.json(payload)
