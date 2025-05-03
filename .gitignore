@@ -1,0 +1,9 @@
+test*.py
+*.iml
+*.xml
+Pipfile.lock
+.idea/
+*.русс
+*.рус
+settings.py
+*__pycache__*
