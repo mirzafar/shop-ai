@@ -82,6 +82,7 @@ async def on_messages(input_text: str, chat_id: str) -> str:
 
     print('1234')
     conversations = await cache.get(f'chatbot:conversations:{chat_id}')
+    print('1237')
     print()
     print(f'on_messages() -> conversations: {conversations}')
     print()
@@ -108,5 +109,6 @@ async def on_messages(input_text: str, chat_id: str) -> str:
     else:
         conversations.append({'role': 'assistant', 'content': response_text})
         await cache.set(f'chatbot:conversations:{chat_id}', ujson.dumps(conversations), ex=timedelta(hours=1))
+    print('1236')
 
     return response_text
