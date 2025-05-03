@@ -80,6 +80,9 @@ async def on_messages(input_text: str, chat_id: str) -> str:
         return await cache.delete(f'chatbot:conversations:{chat_id}')
 
     conversations = await cache.get(f'chatbot:conversations:{chat_id}')
+    print()
+    print(f'on_messages() -> conversations: {conversations}')
+    print()
     if conversations:
         conversations = ujson.loads(conversations)
     else:
