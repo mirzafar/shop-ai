@@ -21,6 +21,7 @@ def validate_phone(value: str) -> str:
 class TelegramWebhookView(HTTPMethodView):
     async def post(self, request):
         data = request.json or {}
+        print(f'TelegramWebhookView.post: {data}')
 
         message = data.get('message')
         chat_member = data.get('my_chat_member')
@@ -62,7 +63,11 @@ class TelegramWebhookView(HTTPMethodView):
                     'text': 'Ввели не правильный номер. Введите обратно!'
                 }
 
-        response_text = 'Здравствуйте! Чем могу помочь: хотите сделать покупку или вам нужна консультация по одежде?'
+        if text:
+            response_text = 'Здравствуйте! Чем могу помочь: хотите сделать покупку или вам нужна консультация по одежде?'
+        else:
+            response_text = 'Извините, но я не могу понять ваш запрос. Пожалуйста, уточните, вопрос'
+
         if text and chat_id and not payload:
             response_text = await on_messages(
                 input_text=text,
