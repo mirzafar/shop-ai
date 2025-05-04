@@ -6,6 +6,7 @@ import ujson
 from openai import AsyncOpenAI
 
 from core.cache import cache
+from core.db import mongo
 from settings import settings
 
 client = AsyncOpenAI(
@@ -92,18 +93,17 @@ async def on_messages(input_text: str, chat_id: str) -> str:
         print(summary)
         print()
         try:
-            result = {"ИТОГ": {}}
-
-            # Process each line
+            result = {}
             for line in summary.strip().split('\n'):
                 if line.startswith('- '):
-                    # Split key and value
                     key_value = line[2:].split(': ', 1)
                     if len(key_value) == 2:
                         key = key_value[0].strip()
                         value = key_value[1].strip()
-                        result["ИТОГ"][key] = value
-            print(result)
+                        result[key] = value
+
+            await mongo.orders.insert_one(result)
+
         except (Exception,):
             traceback.print_exc()
         print()

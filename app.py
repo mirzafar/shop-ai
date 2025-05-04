@@ -1,6 +1,7 @@
 from sanic import Sanic
 
 from core.cache import cache
+from core.db import mongo
 from webhooks import TelegramWebhookView
 
 app = Sanic(name='chat-bot')
@@ -9,6 +10,7 @@ app = Sanic(name='chat-bot')
 @app.before_server_start
 async def before_server_start(_app, _loop):
     await cache.initialize(_loop)
+    mongo.initialize(_loop)
     # _loop.create_task(MessageConsumer().initialize(_loop))
 
 
