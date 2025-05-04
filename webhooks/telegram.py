@@ -58,11 +58,11 @@ class TelegramWebhookView(HTTPMethodView):
                 print('phone number', phone)
                 return response.json({})
             else:
-                payload = {
+                return response.json({
                     'method': 'sendMessage',
                     'chat_id': chat_id,
                     'text': 'Ввели не правильный номер. Введите обратно!'
-                }
+                })
 
         if text:
             response_text = 'Здравствуйте! Чем могу помочь: хотите сделать покупку или вам нужна консультация по одежде?'
