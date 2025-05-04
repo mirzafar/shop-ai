@@ -36,7 +36,7 @@ system_message = '''
      • Пр. Мангилик Ел, 26Б  
      • Шоссе Алаш, 34/1  
      *Режим работы:* 9:00–21:00, без выходных  
-   - *Ссылка на товар (если из Kaspi/Instagram):* попроси прислать ссылку
+   - *Ссылка на товар (если из Kaspi):* попроси прислать ссылку
    - *номер фискального чека (если намерение возврат):* попроси прислать номер
 
 3. **Как только все данные собраны — сразу выведи ИТОГ в строгом форматe:** 
@@ -101,9 +101,6 @@ async def on_messages(input_text: str, chat_id: str) -> str:
 
     summary = close_chat(response_text)
     if summary:
-        print()
-        print(summary)
-        print()
         try:
             result = {}
             for line in summary.strip().split('\n'):
@@ -112,16 +109,46 @@ async def on_messages(input_text: str, chat_id: str) -> str:
                     if len(key_value) == 2:
                         key = key_value[0].strip()
                         value = key_value[1].strip()
-                        result[key] = value
+                        result[key.lower().strip()] = value
 
-            await mongo.orders.insert_one(result)
+            is_insert = False
+            if result and result.get('намерение') in ['покупка', 'наличие']:
+                if result.get('источник') == 'Kaspi':
+                    if result.get('ссылка'):
+                        is_insert = True
+                    else:
+                        conversations.append({'role': 'system',
+                                              'content': 'Уточни ссылку на каспи. И сразу выведи ИТОГ в строгом форматe'})
+                        response_text = await http_client(conversations)
+                else:
+                    if result.get('вид'):
+                        goods = await mongo.goods.find({'title': {'$regex': result['вид'], '$options': 'i'}}).to_list(
+                            length=None)
+                        if goods:
+                            is_insert = True
+                            result['good_ids'] = [str(x['_id']) for x in goods]
+                        else:
+                            conversations.append({'role': 'system',
+                                                  'content': 'Нету такого тавара нужно заново переопределить намерение. И сразу выведи ИТОГ в строгом форматe'})
+                            response_text = await http_client(conversations)
+                    else:
+                        conversations.append({'role': 'system',
+                                              'content': 'Уточни вид одежды. И сразу выведи ИТОГ в строгом форматe'})
+                        response_text = await http_client(conversations)
+            else:
+                is_insert = True
+
+            if is_insert:
+                await mongo.orders.insert_one(result)
 
         except (Exception,):
             traceback.print_exc()
-        print()
-        await cache.set(f'chatbot:number:{chat_id}', '1', ex=timedelta(hours=4))
-        await cache.delete(f'chatbot:conversations:{chat_id}')
-        return 'Для оформления заказа назовите, пожалуйста, номер телефона.'
+            is_insert = True
+
+        if is_insert:
+            await cache.set(f'chatbot:number:{chat_id}', '1', ex=timedelta(hours=4))
+            await cache.delete(f'chatbot:conversations:{chat_id}')
+            return 'Для оформления заказа назовите, пожалуйста, номер телефона.'
     else:
         conversations.append({'role': 'assistant', 'content': response_text})
         await cache.set(f'chatbot:conversations:{chat_id}', ujson.dumps(conversations), ex=timedelta(hours=1))
