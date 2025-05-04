@@ -144,7 +144,7 @@ async def on_messages(input_text: str, chat_id: str) -> str:
                             result['good_ids'] = [str(x['_id']) for x in goods]
                         else:
                             conversations.append({'role': 'system',
-                                                  'content': 'Нету такого одежды нужно заново переопределить намерение. И сразу выведи ИТОГ в строгом форматe'})
+                                                  'content': 'Вежливо объясни что у нас нету токого одежды. Нужно заново переопределить одежду и параметры. И сразу выведи ИТОГ в строгом форматe'})
                             response_text = await http_client(conversations)
                     else:
                         conversations.append({'role': 'system',
