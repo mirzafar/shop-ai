@@ -62,10 +62,18 @@ def clean_text(text: str) -> str:
 
 def close_chat(bot_response):
     logger.debug(f'bot_response: {bot_response}')
-    summary_pattern = r'DATA:(.*?)(?=\n\n|$)'
-    match = re.search(summary_pattern, bot_response, re.DOTALL)
-    if match:
+    pattern = r'DATA:(.*?)(?=\n\n|$)'
+    if match := re.search(pattern, bot_response, re.DOTALL):
         return clean_text(match.group(1).strip())
+
+    pattern = r'**ИТОГ:**(.*?)(?=\n\n|$)'
+    if match := re.search(pattern, bot_response, re.DOTALL):
+        return clean_text(match.group(1).strip())
+
+    pattern = r'ИТОГ:(.*?)(?=\n\n|$)'
+    if match := re.search(pattern, bot_response, re.DOTALL):
+        return clean_text(match.group(1).strip())
+
     return None
 
 
