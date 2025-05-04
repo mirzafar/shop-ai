@@ -64,11 +64,31 @@ def close_chat(bot_response):
     txt = bot_response.strip().replace('*', '')
     pattern = r'DATA:(.*?)(?=\n\n|$)'
     if match := re.search(pattern, txt, re.DOTALL):
-        return clean_text(match.group(1).strip())
+        summary = clean_text(match.group(1).strip())
+        result = {}
+        for line in summary.strip().split('\n'):
+            if line.startswith('- '):
+                key_value = line[2:].split(': ', 1)
+                if len(key_value) == 2:
+                    key = key_value[0].strip()
+                    value = key_value[1].strip()
+                    result[key.lower().strip()] = value
+
+        return result
 
     pattern = r'ИТОГ:(.*?)(?=\n\n|$)'
     if match := re.search(pattern, txt, re.DOTALL):
-        return clean_text(match.group(1).strip())
+        summary = clean_text(match.group(1).strip())
+        result = {}
+        for line in summary.strip().split('\n'):
+            if line.startswith('- '):
+                key_value = line[2:].split(': ', 1)
+                if len(key_value) == 2:
+                    key = key_value[0].strip()
+                    value = key_value[1].strip()
+                    result[key.lower().strip()] = value
+
+        return result
 
     lines = txt.split('\n')
     data = {}
@@ -114,18 +134,9 @@ async def on_messages(input_text: str, chat_id: str) -> str:
     conversations.append({'role': 'user', 'content': input_text})
     response_text = await http_client(conversations)
 
-    summary = close_chat(response_text)
+    result = close_chat(response_text)
     if summary:
         try:
-            result = {}
-            for line in summary.strip().split('\n'):
-                if line.startswith('- '):
-                    key_value = line[2:].split(': ', 1)
-                    if len(key_value) == 2:
-                        key = key_value[0].strip()
-                        value = key_value[1].strip()
-                        result[key.lower().strip()] = value
-
             is_insert = False
             if result and result.get('намерение') and result['намерение'].lower().strip() in ['покупка', 'наличие']:
                 if result.get('источник') and result['источник'].lower().strip() == 'Kaspi':
