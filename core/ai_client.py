@@ -36,7 +36,7 @@ system_message = '''
      • Пр. Мангилик Ел, 26Б  
      • Шоссе Алаш, 34/1  
      *Режим работы:* 9:00–21:00, без выходных  
-   - *Ссылка на товар (если из Kaspi):* попроси прислать ссылку
+   - *Ссылка на товар (если из Kaspi):* попроси прислать ссылку только если Источник каспи
    - *номер фискального чека (если намерение возврат):* попроси прислать номер
 
 3. **Как только все данные собраны — сразу выведи ИТОГ в строгом форматe:** 
@@ -127,8 +127,8 @@ async def on_messages(input_text: str, chat_id: str) -> str:
                         result[key.lower().strip()] = value
 
             is_insert = False
-            if result and result.get('намерение') in ['покупка', 'наличие']:
-                if result.get('источник') == 'Kaspi':
+            if result and result.get('намерение') and result['намерение'].lower().strip() in ['покупка', 'наличие']:
+                if result.get('источник') and result['источник'].lower().strip() == 'Kaspi':
                     if result.get('ссылка'):
                         is_insert = True
                     else:
