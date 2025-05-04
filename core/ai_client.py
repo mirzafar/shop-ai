@@ -135,7 +135,7 @@ async def on_messages(input_text: str, chat_id: str) -> str:
     response_text = await http_client(conversations)
 
     result = close_chat(response_text)
-    if summary:
+    if result:
         try:
             is_insert = False
             if result and result.get('намерение') and result['намерение'].lower().strip() in ['покупка', 'наличие']:
