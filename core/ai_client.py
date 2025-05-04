@@ -70,6 +70,21 @@ def close_chat(bot_response):
     if match := re.search(pattern, txt, re.DOTALL):
         return clean_text(match.group(1).strip())
 
+    lines = txt.split('\n')
+    data = {}
+    for line in lines:
+        if line.startswith('-'):
+            clean_line = line[1:].strip()
+            if ':' in clean_line:
+                key, value = clean_line.split(':', 1)
+                key = key.strip()
+                value = value.strip()
+                if key in ['Намерение', 'Источник', 'Вид', 'Размер', 'Цвет', 'Филиал', 'Ссылка', 'Номер чека']:
+                    data[key] = value
+
+    if data:
+        return data
+
     return None
 
 
@@ -129,7 +144,7 @@ async def on_messages(input_text: str, chat_id: str) -> str:
                             result['good_ids'] = [str(x['_id']) for x in goods]
                         else:
                             conversations.append({'role': 'system',
-                                                  'content': 'Нету такого тавара нужно заново переопределить намерение. И сразу выведи ИТОГ в строгом форматe'})
+                                                  'content': 'Нету такого одежды нужно заново переопределить намерение. И сразу выведи ИТОГ в строгом форматe'})
                             response_text = await http_client(conversations)
                     else:
                         conversations.append({'role': 'system',
