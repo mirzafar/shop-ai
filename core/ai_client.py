@@ -1,4 +1,5 @@
 import re
+import traceback
 from datetime import timedelta
 
 import ujson
@@ -89,6 +90,22 @@ async def on_messages(input_text: str, chat_id: str) -> str:
     if summary:
         print()
         print(summary)
+        print()
+        try:
+            result = {"ИТОГ": {}}
+
+            # Process each line
+            for line in summary.strip().split('\n'):
+                if line.startswith('- '):
+                    # Split key and value
+                    key_value = line[2:].split(': ', 1)
+                    if len(key_value) == 2:
+                        key = key_value[0].strip()
+                        value = key_value[1].strip()
+                        result["ИТОГ"][key] = value
+            print(result)
+        except (Exception,):
+            traceback.print_exc()
         print()
         await cache.set(f'chatbot:number:{chat_id}', '1', ex=timedelta(hours=4))
         await cache.delete(f'chatbot:conversations:{chat_id}')
