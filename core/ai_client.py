@@ -38,7 +38,7 @@ system_message = '''
    - *Ссылка на товар (если из Kaspi/Instagram):* попроси прислать ссылку  
 
 3. **Как только все данные собраны — сразу выведи ИТОГ в строгом форматe:** 
-ИТОГ:
+DATA:
 - Намерение: [покупка/наличие/консультация]
 - Источник: [Instagram/Kaspi/магазин/другое]
 - Вид: [платье/брюки/кофта и т.д.]
@@ -59,7 +59,7 @@ def clean_text(text: str) -> str:
 
 def close_chat(bot_response):
     logger.debug(f'bot_response: {bot_response}')
-    summary_pattern = r"ИТОГ:(.*?)(?=\n\n|$)"
+    summary_pattern = r"DATA:(.*?)(?=\n\n|$)"
     match = re.search(summary_pattern, bot_response, re.DOTALL)
     if match:
         return clean_text(match.group(1).strip())
