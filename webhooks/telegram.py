@@ -50,9 +50,9 @@ class TelegramWebhookView(HTTPMethodView):
 
         payload = {}
 
-        phone = await cache.get(f'chatbot:number:{chat_id}')
-        if phone:
-            phone = validate_phone(phone)
+        check_phone = await cache.get(f'chatbot:number:{chat_id}')
+        if check_phone:
+            phone = validate_phone(text)
             if phone:
                 await cache.delete(f'chatbot:number:{chat_id}')
                 print('phone number', phone)
