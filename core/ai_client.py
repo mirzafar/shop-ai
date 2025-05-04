@@ -143,8 +143,14 @@ async def on_messages(input_text: str, chat_id: str) -> str:
                             is_insert = True
                             result['good_ids'] = [str(x['_id']) for x in goods]
                         else:
-                            conversations.append({'role': 'system',
-                                                  'content': 'Вежливо объясни что у нас нету токого одежды. Нужно заново переопределить одежду и параметры. И сразу выведи ИТОГ в строгом форматe'})
+                            conversations.append({
+                                'role': 'system',
+                                'content': '''
+                                товара нет в наличии:
+                               - Сообщи: "К сожалению, этого товара сейчас нет в наличии. Хотите подобрать что-то похожее или уточнить наличие в другом филиале?"
+                               - Если клиент согласен на другие одежды — собери данные заново
+                               - Выведи новый ИТОГ в том же формате
+                                '''})
                             response_text = await http_client(conversations)
                     else:
                         conversations.append({'role': 'system',
