@@ -56,6 +56,7 @@ class TelegramWebhookView(HTTPMethodView):
             if phone:
                 await cache.delete(f'chatbot:number:{chat_id}')
                 print('phone number', phone)
+                return response.json({})
             else:
                 payload = {
                     'method': 'sendMessage',
