@@ -9,6 +9,7 @@ sanic = "==25.3.0"
 aioredis = "==2.0.1"
 aio-pika = "*"
 motor = "*"
+nltk = "*"
 
 [dev-packages]
 

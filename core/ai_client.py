@@ -4,6 +4,8 @@ import traceback
 from datetime import timedelta
 
 import ujson
+from nltk.stem.snowball import SnowballStemmer
+from nltk.tokenize import word_tokenize
 from openai import AsyncOpenAI
 
 from core.cache import cache
@@ -15,6 +17,8 @@ client = AsyncOpenAI(
 )
 
 logger = logging.getLogger(__name__)
+
+stemmer = SnowballStemmer("russian")
 
 system_message = '''
 Ты — помощник магазина женской одежды "Ерлан Ерке". Твоя задача — вежливо собрать ключевые данные о запросе клиента и сразу вывести итог в строгом формате.  
@@ -144,12 +148,19 @@ async def on_messages(input_text: str, chat_id: str) -> str:
                         is_insert = True
                     else:
                         conversations.append({'role': 'system',
-                                              'content': 'Уточни ссылку на каспи. И сразу выведи ИТОГ в строгом форматe'})
+                                              'content': '''
+                                              - Уточни ссылку на каспи.
+                                              - Когда соберешь новые данные выведи новый ИТОГ в том же формате
+                                              '''})
                         response_text = await http_client(conversations)
                 else:
                     if result.get('вид'):
-                        goods = await mongo.goods.find({'title': {'$regex': result['вид'], '$options': 'i'}}).to_list(
-                            length=None)
+                        tokens = word_tokenize(result['вид'])
+                        filters = []
+                        for word in tokens:
+                            filters.append({'words': stemmer.stem(word)})
+
+                        goods = await mongo.goods.find({'$and': filters}).to_list(length=None)
                         if goods:
                             is_insert = True
                             result['good_ids'] = [str(x['_id']) for x in goods]
@@ -167,7 +178,10 @@ async def on_messages(input_text: str, chat_id: str) -> str:
                             response_text = await http_client(conversations)
                     else:
                         conversations.append({'role': 'system',
-                                              'content': 'Уточни вид одежды. И сразу выведи ИТОГ в строгом форматe'})
+                                              'content': '''
+                                                          - Уточни вид одежды.
+                                                          - Когда соберешь новые данные выведи новый ИТОГ в том же формате
+                                                          '''})
                         response_text = await http_client(conversations)
             else:
                 is_insert = True
