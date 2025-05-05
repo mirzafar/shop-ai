@@ -50,26 +50,12 @@ class TelegramWebhookView(HTTPMethodView):
 
         payload = {}
 
-        check_phone = await cache.get(f'chatbot:number:{chat_id}')
-        if check_phone:
-            phone = validate_phone(text)
-            if phone:
-                await cache.delete(f'chatbot:number:{chat_id}')
-                print('phone number', phone)
-                return response.json({})
-            else:
-                return response.json({
-                    'method': 'sendMessage',
-                    'chat_id': chat_id,
-                    'text': 'Ввели не правильный номер. Введите обратно!'
-                })
-
         if text:
             response_text = 'Здравствуйте! Чем могу помочь: хотите сделать покупку или вам нужна консультация по одежде?'
         else:
             response_text = 'Извините, но я не могу понять ваш запрос. Пожалуйста, уточните, вопрос'
 
-        if text and chat_id and not payload:
+        if text and chat_id:
             response_text = await on_messages(
                 input_text=text,
                 chat_id=chat_id

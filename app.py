@@ -11,7 +11,6 @@ app = Sanic(name='chat-bot')
 async def before_server_start(_app, _loop):
     await cache.initialize(_loop)
     mongo.initialize(_loop)
-    # _loop.create_task(MessageConsumer().initialize(_loop))
 
 
 app.add_route(TelegramWebhookView.as_view(), '/webhooks/telegram/')

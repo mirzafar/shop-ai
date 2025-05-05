@@ -194,9 +194,8 @@ async def on_messages(input_text: str, chat_id: str) -> str:
             is_insert = True
 
         if is_insert:
-            await cache.set(f'chatbot:number:{chat_id}', '1', ex=timedelta(hours=4))
             await cache.delete(f'chatbot:conversations:{chat_id}')
-            return 'Для оформления заказа назовите, пожалуйста, номер телефона.'
+            return 'В ближайшее время оператор свяжется с вами.'
     else:
         conversations.append({'role': 'assistant', 'content': response_text})
         await cache.set(f'chatbot:conversations:{chat_id}', ujson.dumps(conversations), ex=timedelta(hours=1))
