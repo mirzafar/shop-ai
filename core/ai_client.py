@@ -143,7 +143,7 @@ async def on_messages(input_text: str, chat_id: str) -> str:
         try:
             is_insert = False
             if result and result.get('намерение') and result['намерение'].lower().strip() in ['покупка', 'наличие']:
-                if result.get('источник') and result['источник'].lower().strip() == 'Kaspi':
+                if result.get('источник') and result['источник'].lower().strip() in ['kaspi', 'каспи']:
                     if result.get('ссылка'):
                         is_insert = True
                     else:
