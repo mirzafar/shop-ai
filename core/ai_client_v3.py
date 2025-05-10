@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Optional, Any
+from typing import Any
 
 import ujson
 from openai import AsyncOpenAI
@@ -138,6 +138,7 @@ async def on_messages(input_text: str, chat_id: str) -> str:
             await cache.delete(f'chatbot:{chat_id}:conversations', f'chatbot:{chat_id}:level')
             return 'Что то не так пошел попробуйте занаво'
 
+        await cache.set(f'chatbot:{chat_id}:level', level, ex=timedelta(minutes=5))
         input_text = None
 
     if level == 2:
@@ -149,5 +150,3 @@ async def on_messages(input_text: str, chat_id: str) -> str:
 
     if level == 3:
         await func_refund(input_text)
-
-    await cache.set(f'chatbot:{chat_id}:level', level, ex=timedelta(minutes=5))
