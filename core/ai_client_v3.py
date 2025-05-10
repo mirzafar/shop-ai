@@ -5,6 +5,7 @@ import ujson
 from openai import AsyncOpenAI
 
 from core.cache import cache
+from core.db import mongo
 from settings import settings
 
 client = AsyncOpenAI(
@@ -106,9 +107,8 @@ async def func_sell(input_text: str, chat_id: str) -> tuple[bool, Any]:
             return True, data
         except (Exception,):
             pass
-    print()
-    print('response_text', response_text)
-    print()
+
+    await mongo.chats.update_one({'uid': chat_id}, {'$set': {'chats': conversations}})
     await cache.set(f'chatbot:{chat_id}:conversations', ujson.dumps(conversations), ex=timedelta(minutes=5))
     return False, response_text
 
