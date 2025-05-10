@@ -1,11 +1,12 @@
 import functools
 import traceback
-from typing import Optional
+from typing import Optional, Union
 
 import aio_pika
 import aioredis
 import ujson
 from aio_pika.abc import AbstractRobustChannel
+from aioredis import Redis
 
 from settings import settings
 
@@ -13,7 +14,7 @@ from settings import settings
 class Cache:
 
     def __init__(self):
-        self.pool = None
+        self.pool: Optional[Redis] = None
         self.connection = None
         self.channel: Optional[AbstractRobustChannel] = None
 
@@ -52,4 +53,4 @@ class Cache:
         return functools.partial(getattr(self.pool, attr))
 
 
-cache = Cache()
+cache: Union[aioredis.Redis, Cache] = Cache()
