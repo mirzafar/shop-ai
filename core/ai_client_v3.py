@@ -118,7 +118,7 @@ async def func_refund(input_text: str) -> str:
 
 async def on_messages(input_text: str, chat_id: str) -> str:
     if input_text in ['stoop']:
-        await cache.delete(f'chatbot:{chat_id}:conversations', f'chatbot:{chat_id}:level')
+        await cache.delete(f'chatbot:{chat_id}:conversations', f'chatbot:{chat_id}:level', f'chatbot:{chat_id}:intent')
         return input_text
 
     level = await cache.get(f'chatbot:{chat_id}:level') or 1
