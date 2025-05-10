@@ -108,7 +108,7 @@ async def func_sell(input_text: str, chat_id: str) -> tuple[bool, Any]:
         except (Exception,):
             pass
 
-    await mongo.chats.update_one({'uid': chat_id}, {'$set': {'chats': conversations}})
+    await mongo.chats.update_one({'uid': chat_id}, {'$set': {'chats': conversations}}, upsert=True)
     await cache.set(f'chatbot:{chat_id}:conversations', ujson.dumps(conversations), ex=timedelta(minutes=5))
     return False, response_text
 
