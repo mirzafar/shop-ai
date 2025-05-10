@@ -1,7 +1,7 @@
 from sanic import response
 from sanic.views import HTTPMethodView
 
-from core.ai_client_v2 import on_messages
+from core.ai_client_v3 import on_messages
 
 
 def validate_phone(value: str) -> str:
