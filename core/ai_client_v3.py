@@ -128,14 +128,15 @@ async def on_messages(input_text: str, chat_id: str) -> str:
         text = text.strip().lower()
         if text == 'возврат':
             level = 3
+            await cache.set(f'chatbot:{chat_id}:intent', 'refund')
         elif text == 'покупка':
             level = 2
+            await cache.set(f'chatbot:{chat_id}:intent', 'sell')
         else:
             await cache.delete(f'chatbot:{chat_id}:conversations', f'chatbot:{chat_id}:level')
             return 'Что то не так пошел попробуйте занаво'
 
         input_text = None
-        await cache.set(f'chatbot:{chat_id}:intent', text)
 
     if level == 2:
         success, resp = await func_sell(input_text, chat_id)
