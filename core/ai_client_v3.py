@@ -138,9 +138,10 @@ async def on_messages(input_text: str, chat_id: str) -> str:
 
     if level == 2:
         success, resp = await func_sell(input_text, chat_id)
-        if success:
-            input_text = None
-            await cache.set(f'chatbot:{chat_id}:configs', ujson.dumps(resp))
+        if success is False:
+            return resp
+        input_text = None
+        await cache.set(f'chatbot:{chat_id}:configs', ujson.dumps(resp))
 
     if level == 3:
         await func_refund(input_text)
