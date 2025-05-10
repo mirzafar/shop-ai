@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Optional
+from typing import Optional, Any
 
 import ujson
 from openai import AsyncOpenAI
@@ -65,7 +65,7 @@ async def func_intention(input_text: str, chat_id: str) -> tuple[bool, str]:
     return False, response_text
 
 
-async def func_sell(input_text: str, chat_id: str) -> tuple[bool, Optional[dict, str]]:
+async def func_sell(input_text: str, chat_id: str) -> tuple[bool, Any]:
     system_message_by_types = '''
         Ты — помощник магазина женской одежды "Ерлан Ерке". У нас есть филиалы:
             • Ул. Александр Бараев, 19 (9:00–21:00, без выходных)
