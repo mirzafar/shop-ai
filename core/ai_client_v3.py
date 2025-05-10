@@ -139,6 +139,7 @@ async def on_messages(input_text: str, chat_id: str) -> str:
             await cache.delete(f'chatbot:{chat_id}:conversations', f'chatbot:{chat_id}:level')
             return 'Что то не так пошел попробуйте занаво'
 
+        await cache.delete(f'chatbot:{chat_id}:conversations', f'chatbot:{chat_id}:level')
         await cache.set(f'chatbot:{chat_id}:level', level, ex=timedelta(minutes=5))
         input_text = None
 
