@@ -106,7 +106,9 @@ async def func_sell(input_text: str, chat_id: str) -> tuple[bool, Any]:
             return True, data
         except (Exception,):
             pass
-
+    print()
+    print('response_text', response_text)
+    print()
     await cache.set(f'chatbot:{chat_id}:conversations', ujson.dumps(conversations), ex=timedelta(minutes=5))
     return False, response_text
 
@@ -144,7 +146,6 @@ async def on_messages(input_text: str, chat_id: str) -> str:
         success, resp = await func_sell(input_text, chat_id)
         if success is False:
             return resp
-        input_text = None
         await cache.set(f'chatbot:{chat_id}:configs', ujson.dumps(resp))
 
     if level == 3:
