@@ -132,7 +132,7 @@ async def on_messages(input_text: str, chat_id: str) -> str:
         await clear_chat(chat_id)
         return input_text
 
-    level = await cache.get(f'chatbot:{chat_id}:level') or 1
+    level = int(await cache.get(f'chatbot:{chat_id}:level') or 1)
     if level == 1:
         success, text = await func_intention(input_text, chat_id)
         if success is False:
