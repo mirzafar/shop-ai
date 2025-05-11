@@ -67,7 +67,7 @@ async def func_intention(input_text: str, chat_id: str) -> tuple[bool, str]:
     return False, response_text
 
 
-async def func_sell(input_text: str, chat_id: str) -> tuple[bool, Any]:
+async def func_sell(input_text: str, chat_id: str):
     system_message_by_types = '''
         Ты — помощник магазина женской одежды "Ерлан Ерке". У нас есть филиалы:
             • Ул. Александр Бараев, 19 (9:00–21:00, без выходных)
@@ -120,9 +120,18 @@ async def func_refund(input_text: str) -> str:
     pass
 
 
+async def clear_chat(uid: str):
+    await cache.delete(
+        f'chatbot:{uid}:conversations',
+        f'chatbot:{uid}:level',
+        f'chatbot:{uid}:intent',
+        f'chatbot:{uid}:configs'
+    )
+
+
 async def on_messages(input_text: str, chat_id: str) -> str:
     if input_text in ['stoop']:
-        await cache.delete(f'chatbot:{chat_id}:conversations', f'chatbot:{chat_id}:level', f'chatbot:{chat_id}:intent')
+        await clear_chat(chat_id)
         return input_text
 
     level = await cache.get(f'chatbot:{chat_id}:level') or 1
@@ -139,10 +148,10 @@ async def on_messages(input_text: str, chat_id: str) -> str:
             level = 2
             await cache.set(f'chatbot:{chat_id}:intent', 'sell')
         else:
-            await cache.delete(f'chatbot:{chat_id}:conversations', f'chatbot:{chat_id}:level')
+            await clear_chat(chat_id)
             return 'Что то не так пошел попробуйте занаво'
 
-        await cache.delete(f'chatbot:{chat_id}:conversations', f'chatbot:{chat_id}:level')
+        await cache.delete(f'chatbot:{chat_id}:conversations')
         await cache.set(f'chatbot:{chat_id}:level', level, ex=timedelta(minutes=5))
         input_text = None
 
