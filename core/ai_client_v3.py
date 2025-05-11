@@ -122,7 +122,7 @@ async def func_sell(input_text: str | None, chat_id: str):
             `{"category": "категория одежды", "size": "размер", "color": "цвет"}`
             '''})
 
-            return func_sell(None, chat_id)
+            return await func_sell(None, chat_id)
 
         await mongo.orders.insert_one({
             'good_ids': _ids,

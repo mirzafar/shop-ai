@@ -1,3 +1,5 @@
+import traceback
+
 from sanic import response
 from sanic.views import HTTPMethodView
 
@@ -55,10 +57,14 @@ class TelegramWebhookView(HTTPMethodView):
             response_text = 'Извините, но я не могу понять ваш запрос. Пожалуйста, уточните, вопрос'
 
         if text and chat_id:
-            response_text = await on_messages(
-                input_text=text,
-                chat_id=chat_id
-            )
+            try:
+                response_text = await on_messages(
+                    input_text=text,
+                    chat_id=chat_id
+                )
+            except (Exception,):
+                traceback.print_exc()
+                return response.json({})
 
         if response_text:
             payload = {
