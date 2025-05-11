@@ -103,13 +103,14 @@ async def func_sell(input_text: str, chat_id: str):
 
     response_text = await http_client(conversations)
     if response_text:
+        conversations.append({'role': 'assistant', 'content': response_text})
         try:
             data = ujson.loads(response_text)
+            await mongo.chats.update_one({'uid': chat_id}, {'$set': {'chats': conversations}}, upsert=True)
             return True, data
         except (Exception,):
             pass
 
-    conversations.append({'role': 'assistant', 'content': response_text})
 
     await mongo.chats.update_one({'uid': chat_id}, {'$set': {'chats': conversations}}, upsert=True)
     await cache.set(f'chatbot:{chat_id}:conversations', ujson.dumps(conversations), ex=timedelta(minutes=5))
