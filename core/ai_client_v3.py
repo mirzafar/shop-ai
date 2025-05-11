@@ -1,6 +1,8 @@
 from datetime import timedelta
 
 import ujson
+from nltk.stem.snowball import SnowballStemmer
+from nltk.tokenize import word_tokenize
 from openai import AsyncOpenAI
 
 from core.cache import cache
@@ -66,8 +68,8 @@ async def func_intention(input_text: str, chat_id: str) -> tuple[bool, str]:
     return False, response_text
 
 
-async def func_sell(input_text: str, chat_id: str):
-    system_message_by_types = '''
+async def func_sell(input_text: str | None, chat_id: str):
+    system_message = '''
         Ты — вежливый и лаконичный помощник интернет-магазина женской одежды "Ерлан Ерке". Твоя задача — помочь покупательнице выбрать товар, определив только три параметра:
         – вид одежды (например: платье, блузка, брюки и т.д.),
         – размер (если клиент не знает — предложи таблицу размеров, размер должен европейские, американские формате),
@@ -93,24 +95,43 @@ async def func_sell(input_text: str, chat_id: str):
         conversations = ujson.loads(conversations)
     else:
         conversations = [
-            {'role': 'system', 'content': system_message_by_types}
+            {'role': 'system', 'content': system_message}
         ]
 
     if input_text:
         conversations.append({'role': 'user', 'content': input_text})
 
     response_text = await http_client(conversations)
-    if response_text:
-        conversations.append({'role': 'assistant', 'content': response_text})
-        try:
-            data = ujson.loads(response_text)
-            await mongo.chats.update_one({'uid': chat_id}, {'$set': {'chats': conversations}}, upsert=True)
-            return True, data
-        except (Exception,):
-            pass
-
-    await mongo.chats.update_one({'uid': chat_id}, {'$set': {'chats': conversations}}, upsert=True)
+    conversations.append({'role': 'assistant', 'content': response_text})
     await cache.set(f'chatbot:{chat_id}:conversations', ujson.dumps(conversations), ex=timedelta(minutes=5))
+
+    try:
+        data = ujson.loads(response_text)
+        flag, _ids = await found_goods(data)
+        if flag is False:
+            conversations.append({'role': 'system', 'content': '''
+            В базе с таким параметром ничего не найдено, вежливо скажи:
+            "К сожалению, по этим параметрам ничего не найдено 😔 Давайте попробуем ещё раз. Уточните, пожалуйста: вид одежды, размер и цвет."
+            
+            Твоя задача пересобрать три параметра:
+            – вид одежды (например: платье, блузка, брюки и т.д.),
+            – размер (если клиент не знает — предложи таблицу размеров, размер должен европейские, американские формате),
+            – цвет.
+            
+            После того как собраны все три параметра, выведи ответ в формате JSON:
+            `{"category": "категория одежды", "size": "размер", "color": "цвет"}`
+            '''})
+
+            return func_sell(None, chat_id)
+
+        await mongo.orders.insert_one({
+            'good_ids': _ids,
+            **data
+        })
+        return True, data
+    except (Exception,):
+        pass
+
     return False, response_text
 
 
@@ -125,6 +146,41 @@ async def clear_chat(uid: str):
         f'chatbot:{uid}:intent',
         f'chatbot:{uid}:configs'
     )
+
+
+stemmer = SnowballStemmer("russian")
+
+
+async def found_goods(configs: dict) -> tuple[bool, list]:
+    tokens = word_tokenize(configs['category'])
+    filters = []
+    for word in tokens:
+        filters.append({'words': stemmer.stem(word)})
+
+    g_filter = {}
+    if configs.get('size'):
+        g_filter['size'] = configs['size']
+
+    f_colors = []
+    if configs.get('color'):
+        t_colors = word_tokenize(configs['color'])
+        for word in t_colors:
+            f_colors.append({'f_colors': stemmer.stem(word)})
+
+    g_filter.update({
+        '$and': filters + f_colors,
+        'size': configs['size']
+    })
+
+    good = await mongo.goods.find_one(g_filter)
+    if good:
+        return True, [str(good['_id'])]
+
+    goods = await mongo.goods.find({'$and': filters}).to_list(length=None)
+    if goods:
+        return True, [str(x['_id']) for x in goods[:5]]
+    else:
+        return False, []
 
 
 async def on_messages(input_text: str, chat_id: str) -> str:
@@ -157,7 +213,10 @@ async def on_messages(input_text: str, chat_id: str) -> str:
         success, resp = await func_sell(input_text, chat_id)
         if success is False:
             return resp
+
+        await clear_chat(chat_id)
         await cache.set(f'chatbot:{chat_id}:configs', ujson.dumps(resp))
+        return 'Ваш запрос принят, в ближайшее время оператор свяжется с вами.'
 
     if level == 3:
         await func_refund(input_text)
