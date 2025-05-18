@@ -70,7 +70,17 @@ class TelegramWebhookView(HTTPMethodView):
             payload = {
                 'method': 'sendMessage',
                 'chat_id': chat_id,
-                'text': response_text
+                'text': response_text,
+                'reply_markup': {
+                    'keyboard': [
+                        ['\u2063📔Каталог'],
+                        ['\u2062📦Заказать'],
+                        ['\u2062🗃Мои заказы'],
+                    ],
+                    'resize_keyboard': True,
+                    'one_time_keyboard': True,
+                    'selective': True
+                }
             }
 
         return response.json(payload)
